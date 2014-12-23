@@ -82,6 +82,9 @@ type viper struct {
 	pflags   map[string]*pflag.Flag
 	env      map[string]string
 	aliases  map[string]string
+
+	//Easy remote config access
+	remoteConfig crypt.ConfigManager
 }
 
 // The prescribed way to create a new Viper
@@ -593,6 +596,7 @@ func (v *viper) getRemoteConfig(provider *remoteProvider) (map[string]interface{
 	if err != nil {
 		return nil, err
 	}
+	v.remoteConfig = cm
 	b, err := cm.Get(provider.path)
 	if err != nil {
 		return nil, err
@@ -600,6 +604,11 @@ func (v *viper) getRemoteConfig(provider *remoteProvider) (map[string]interface{
 	reader := bytes.NewReader(b)
 	v.marshalReader(reader, v.kvstore)
 	return v.kvstore, err
+}
+
+func Config() crypt.ConfigManager { return v.Config() }
+func (v *viper) Config() crypt.ConfigManager {
+	return v.remoteConfig
 }
 
 // Return all keys regardless where they are set
